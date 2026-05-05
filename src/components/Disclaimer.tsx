@@ -1,0 +1,1 @@
+export function Disclaimer(){ return <div className="disclaimer" role="note">This is an authorized educational lab using synthetic data. Do not use these techniques against systems you do not own or have permission to test.</div>; }

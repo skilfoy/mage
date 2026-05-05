@@ -1,0 +1,117 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "sqlite" url = env("DATABASE_URL") }
+
+model PlayerSession {
+  id String @id @default(cuid())
+  displayName String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastSeenAt DateTime @default(now())
+  completedAt DateTime?
+  attempts Attempt[]
+  progress Progress[]
+  hints HintUsage[]
+  guardEvents GuardEvent[]
+  leaderboard LeaderboardEntry?
+}
+model Room {
+  id String @id
+  slug String @unique
+  title String
+  description String
+  order Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  levels Level[]
+}
+model Level {
+  id String @id
+  slug String @unique
+  roomId String
+  order Int
+  title String
+  difficulty String
+  configJson String
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  attempts Attempt[]
+  progress Progress[]
+  hints HintUsage[]
+  guardEvents GuardEvent[]
+}
+model Attempt {
+  id String @id @default(cuid())
+  sessionId String
+  levelId String
+  userInputRedacted String
+  assistantOutputRedacted String
+  inputTokenEstimate Int
+  outputTokenEstimate Int
+  guardBlocked Boolean @default(false)
+  guardTagsJson String
+  scoreDelta Int @default(0)
+  createdAt DateTime @default(now())
+  session PlayerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  guardEvents GuardEvent[]
+}
+model Progress {
+  id String @id @default(cuid())
+  sessionId String
+  levelId String
+  status String
+  attempts Int @default(0)
+  hintsUsed Int @default(0)
+  score Int @default(1000)
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session PlayerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  @@unique([sessionId, levelId])
+}
+model GuardEvent {
+  id String @id @default(cuid())
+  sessionId String
+  levelId String
+  attemptId String?
+  guardName String
+  severity String
+  publicMessage String?
+  internalReasonRedacted String?
+  tagsJson String
+  createdAt DateTime @default(now())
+  session PlayerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  attempt Attempt? @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+}
+model HintUsage {
+  id String @id @default(cuid())
+  sessionId String
+  levelId String
+  hintIndex Int
+  penalty Int
+  createdAt DateTime @default(now())
+  session PlayerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  @@unique([sessionId, levelId, hintIndex])
+}
+model LeaderboardEntry {
+  id String @id @default(cuid())
+  sessionId String @unique
+  displayName String
+  totalScore Int @default(0)
+  completedLevels Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session PlayerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+model AdminAuditEvent {
+  id String @id @default(cuid())
+  action String
+  actor String
+  metadataJson String
+  createdAt DateTime @default(now())
+}

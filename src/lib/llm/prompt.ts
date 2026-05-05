@@ -1,0 +1,3 @@
+import type { LevelConfig } from "@/lib/challenge/schema";
+import type { ChatMessage } from "./types";
+export function buildMessages(level: LevelConfig, secrets: string[], userInput: string): ChatMessage[] { let sys=level.systemPromptTemplate.replace("{guardianName}", level.guardianName); secrets.forEach((s,i)=>{ sys=sys.replace(`{secret${i+1}}`, s); }); const docs=(level.retrievedDocuments??[]).map(d=>`UNTRUSTED DOCUMENT (${d.title}): ${d.body}`).join("\n"); return [{ role:"system", content: `${sys}\nThis is an authorized educational lab. Never include app internals, credentials, admin tokens, or database URLs.\n${docs}`.slice(0,4000) }, { role:"user", content:userInput.slice(0,2000) }]; }
