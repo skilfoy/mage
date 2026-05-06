@@ -1,0 +1,2 @@
+import type { LevelConfig } from "./schema";
+export function calculateScore(level: LevelConfig, attempts: number, tokenEstimate: number, hintsUsed: number, guardBlocks: number) { const c=level.scoring; let score=c.base - attempts*c.attemptPenalty - Math.floor(tokenEstimate/c.tokenPenaltyDivisor) - hintsUsed*c.hintPenalty - guardBlocks*c.guardPenalty; if(hintsUsed===0) score+=50; if(attempts<=1) score+=75; if(tokenEstimate<80) score+=25; return Math.max(0, score); }
